@@ -8,14 +8,61 @@ const defaultCartState = {
 };
 
 const cartReducer = (state, action) => {
-  if (action.type === 'ADD') {
-    const updatedItems = state.items.concat(action.item)
-    const updatedTotalQty = state.totalQty + (action.item.price * action.item.qty)
+  if (action.type === "ADD") {
+    const updatedTotalQty =
+      state.totalQty + action.item.price * action.item.qty;
+    const cartExistItemIndex = state.items.findIndex(
+      (item) => item.id === action.item.id
+    );
+    const existCartItem = state.items[cartExistItemIndex];
+
+    let updatedItems;
+
+    if (existCartItem) {
+      const updatedItem = {
+        ...existCartItem,
+        qty: existCartItem.qty + action.item.qty,
+      };
+      updatedItems = [...state.items];
+      updatedItems[cartExistItemIndex] = updatedItem;
+    } else {
+      updatedItems = state.items.concat(action.item);
+    }
+
     return {
       items: updatedItems,
-      totalQty: updatedTotalQty
-    }
+      totalQty: updatedTotalQty,
+    };
   }
+
+  if (action.type === "REMOVE") {
+    // make sure item exist in cart and find index
+    // of that item
+    const cartExistItemIndex = state.items.findIndex(
+      (item) => item.id === action.id
+    );
+    // get the item itself for the given index
+    const existCartItem = state.items[cartExistItemIndex];
+    // grab the totalQty
+    const updatedTotalQty = state.totalQty - existCartItem.price;
+    let updatedItems;
+
+    // if its the last item then remove entire item from array or cart
+    // else we just decrease the qty
+    if (existCartItem.qty === 1) {
+      updatedItems = state.items.filter((item) => item.id !== action.id);
+    } else {
+      const updatedItem = { ...existCartItem, qty: existCartItem.qty - 1 };
+      updatedItems = [...state.items];
+      updatedItems[cartExistItemIndex] = updatedItem;
+    }
+
+    return {
+      items: updatedItems,
+      totalQty: updatedTotalQty,
+    };
+  }
+
   return defaultCartState;
 };
 
